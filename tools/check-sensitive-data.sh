@@ -35,9 +35,10 @@ fi
 
 # This file necessarily contains examples of secret-shaped text in its regex.
 # Its path is still protected above; skip only its contents during the scan.
+# Submodules are listed as one path but are directories of someone else's repository: skip them.
 scanned_files=()
 for file in "${files[@]}"; do
-    [[ "$file" == "tools/check-sensitive-data.sh" ]] || scanned_files+=("$file")
+    [[ "$file" == "tools/check-sensitive-data.sh" || -d "$file" ]] || scanned_files+=("$file")
 done
 
 if [[ ${#scanned_files[@]} -eq 0 ]]; then
