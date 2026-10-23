@@ -115,6 +115,8 @@ jobs:
         run: |
           mkdir -p ~/Library/Audio/Plug-Ins/Components
           cp -R build/NegativeAtomium_artefacts/Release/AU/NegativeAtomium.component ~/Library/Audio/Plug-Ins/Components/
+          # Refresh the AU registry after installing the freshly built component.
+          killall -9 AudioComponentRegistrar 2>/dev/null || true
           auval -v aumu NgA1 Ngat
 
       - name: Package
