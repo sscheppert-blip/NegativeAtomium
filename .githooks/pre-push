@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+scanner="$repo_root/tools/check-sensitive-data.sh"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [[ -z "${local_sha:-}" ]] && continue
+    if [[ "$local_sha" == "0000000000000000000000000000000000000000" ]]; then
+        continue
+    elif [[ "$remote_sha" == "0000000000000000000000000000000000000000" ]]; then
+        "$scanner" HEAD "$local_sha"
+    else
+        "$scanner" "$remote_sha" "$local_sha"
+    fi
+done

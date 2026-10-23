@@ -1,0 +1,94 @@
+# ── Build output ────────────────────────────────────────────
+/build/
+/build-*/
+/out/
+/cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+compile_commands.json
+
+# Fetched dependencies (JUCE, CLAP, … are pulled by CMake)
+/_deps/
+/libs/
+/.cache/
+
+# Built plugins / apps
+*.vst3/
+*.vst3
+*.clap
+*.component/
+*.component
+*.app/
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.exp
+*.pdb
+*.o
+*.obj
+
+# ── Secrets — never commit ──────────────────────────────────
+.env
+.env.*
+*.p12
+*.pfx
+*.pem
+*.key
+*.cer
+*.crt
+*.mobileprovision
+*.provisionprofile
+*.keychain
+*.keychain-db
+secrets/
+credentials*
+*token*
+notarize*.json
+
+# ── OS / editor ─────────────────────────────────────────────
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+.vs/
+*.user
+*.suo
+
+# ── Claude Code local state ─────────────────────────────────
+.claude/settings.local.json
+
+# ── Logs, dumps, test audio, reference material ─────────────
+*.log
+*.dmp
+*.crash
+core
+core.*
+/test-output/
+/renders/
+*.wav
+*.aif
+*.aiff
+*.flac
+*.mp3
+/reference/
+
+# ── Design sources (large binaries; regenerate with tools/make_psd.py) ──
+*.psd
+
+# ── Agent notes (stay local, kept in the owner's cloud) ─────
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.claude/
+PROJECT_MEMORY.md

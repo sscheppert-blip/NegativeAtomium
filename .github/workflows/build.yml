@@ -1,0 +1,179 @@
+name: build
+
+# Builds run only on demand, to save Actions minutes (macOS counts 10x, Windows 2x).
+#
+#   On a Mac:  tools/release-mac.sh 0.5.0
+#              builds the macOS packages locally (free), creates a draft release with them and
+#              starts this workflow with macos=false; it adds Linux + Windows and publishes.
+#   On a PC:   gh workflow run build -f version=0.5.0
+#              (or Actions → build → Run workflow): builds all three platforms here.
+#
+# Each run builds and tests AU (macOS), VST3, CLAP and Standalone and publishes release v<version>.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, e.g. 0.5.0 (creates tag v0.5.0)"
+        required: true
+        type: string
+      macos:
+        description: "Build macOS here (off when the macOS packages were built locally)"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  # Cheap checks first (one Linux minute), so a bad version or a leak never starts the expensive builds.
+  scan:
+    name: Check version and scan for sensitive data
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Check version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "version must look like 0.5.0" >&2; exit 1; }
+
+      - uses: actions/checkout@v4
+
+      - name: Scan for credentials and local-machine data
+        run: |
+          sudo apt-get install -y ripgrep
+          ./tools/check-sensitive-data.sh
+
+      - name: Choose platforms
+        id: matrix
+        env:
+          MACOS: ${{ inputs.macos }}
+        run: |
+          tests=build/NegativeAtomiumTests_artefacts/Release/NegativeAtomiumTests
+          vst3=build/NegativeAtomium_artefacts/Release/VST3/NegativeAtomium.vst3
+          entries=$(jq -nc --arg t "$tests" --arg v "$vst3" '[
+            { name: "macOS",   os: "macos-latest",
+              configure: "-G Ninja -DCMAKE_BUILD_TYPE=Release \"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64\"",
+              targets: "NegativeAtomium_VST3 NegativeAtomium_CLAP NegativeAtomium_AU NegativeAtomium_Standalone NegativeAtomiumTests",
+              tests: $t, "test-args": ("--plugin " + $v) },
+            { name: "Linux",   os: "ubuntu-24.04",
+              configure: "-G Ninja -DCMAKE_BUILD_TYPE=Release",
+              targets: "NegativeAtomium_VST3 NegativeAtomium_CLAP NegativeAtomium_Standalone NegativeAtomiumTests",
+              tests: $t, "test-args": ("--plugin " + $v + " --no-editor") },
+            { name: "Windows", os: "windows-latest",
+              configure: "-A x64",
+              targets: "NegativeAtomium_VST3 NegativeAtomium_CLAP NegativeAtomium_Standalone NegativeAtomiumTests",
+              tests: ($t + ".exe"), "test-args": ("--plugin " + $v) }
+          ]')
+          if [[ "$MACOS" != "true" ]]; then
+            entries=$(jq -c 'map(select(.name != "macOS"))' <<< "$entries")
+          fi
+          echo "matrix={\"include\":$entries}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: ${{ matrix.name }}
+    needs: scan
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.scan.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libasound2-dev libjack-jackd2-dev \
+            libfreetype-dev libfontconfig1-dev libx11-dev libxcomposite-dev libxcursor-dev \
+            libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libxi-dev \
+            libglu1-mesa-dev libegl-dev
+
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: Configure
+        run: cmake -S . -B build ${{ matrix.configure }}
+
+      - name: Build
+        run: cmake --build build --config Release --parallel --target ${{ matrix.targets }}
+
+      - name: Test
+        shell: bash
+        run: ${{ matrix.tests }} ${{ matrix.test-args }}
+
+      - name: Validate AU
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p ~/Library/Audio/Plug-Ins/Components
+          cp -R build/NegativeAtomium_artefacts/Release/AU/NegativeAtomium.component ~/Library/Audio/Plug-Ins/Components/
+          auval -v aumu NgA1 Ngat
+
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p dist
+          cd build/NegativeAtomium_artefacts/Release
+          case "${{ runner.os }}" in
+            macOS)   ditto -c -k --keepParent VST3/NegativeAtomium.vst3 "$GITHUB_WORKSPACE/dist/NegativeAtomium-macOS-VST3.zip"
+                     ditto -c -k --keepParent CLAP/NegativeAtomium.clap "$GITHUB_WORKSPACE/dist/NegativeAtomium-macOS-CLAP.zip"
+                     ditto -c -k --keepParent AU/NegativeAtomium.component "$GITHUB_WORKSPACE/dist/NegativeAtomium-macOS-AU.zip"
+                     ditto -c -k --keepParent Standalone/NegativeAtomium.app "$GITHUB_WORKSPACE/dist/NegativeAtomium-macOS-Standalone.zip" ;;
+            Linux)   tar -czf "$GITHUB_WORKSPACE/dist/NegativeAtomium-Linux-VST3.tar.gz" -C VST3 NegativeAtomium.vst3
+                     tar -czf "$GITHUB_WORKSPACE/dist/NegativeAtomium-Linux-CLAP.tar.gz" -C CLAP NegativeAtomium.clap
+                     tar -czf "$GITHUB_WORKSPACE/dist/NegativeAtomium-Linux-Standalone.tar.gz" -C Standalone NegativeAtomium ;;
+            Windows) 7z a "$GITHUB_WORKSPACE/dist/NegativeAtomium-Windows-VST3.zip" ./VST3/NegativeAtomium.vst3
+                     7z a "$GITHUB_WORKSPACE/dist/NegativeAtomium-Windows-CLAP.zip" ./CLAP/NegativeAtomium.clap
+                     7z a "$GITHUB_WORKSPACE/dist/NegativeAtomium-Windows-Standalone.zip" ./Standalone/NegativeAtomium.exe ;;
+          esac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NegativeAtomium-${{ matrix.name }}
+          path: dist/*
+          retention-days: 7
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download plugin packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: NegativeAtomium-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          MACOS: ${{ inputs.macos }}
+        run: |
+          tag="v$VERSION"
+          if draft=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft,targetCommitish 2>/dev/null); then
+            # Draft from tools/release-mac.sh, already holding the macOS packages.
+            [[ "$(jq -r .isDraft <<< "$draft")" == "true" ]] || { echo "release $tag is already published" >&2; exit 1; }
+            target=$(jq -r .targetCommitish <<< "$draft")
+            [[ "$target" == "$GITHUB_SHA" ]] || { echo "draft $tag targets $target, this build is $GITHUB_SHA" >&2; exit 1; }
+            gh release upload "$tag" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          else
+            [[ "$MACOS" == "true" ]] || { echo "no macOS packages: run tools/release-mac.sh, or start with macos=true" >&2; exit 1; }
+            gh release create "$tag" dist/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "NegativeAtomium $tag" \
+              --generate-notes
+          fi
