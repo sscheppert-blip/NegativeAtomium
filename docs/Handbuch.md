@@ -13,43 +13,77 @@ an 32 Eingängen auftrennen und neu verschalten.
 
 ## Inhalt
 
-1. [Installation](#installation)
-2. [Bedienung](#bedienung)
-3. [Der Signalweg](#der-signalweg)
-4. [Die Sektionen](#die-sektionen)
-5. [Patchbay](#patchbay)
-6. [Settings](#settings)
-7. [MIDI](#midi)
-8. [Presets](#presets)
-9. [Tipps und Fehlersuche](#tipps-und-fehlersuche)
+1. [Installation](#1-installation)
+2. [Bedienung](#2-bedienung)
+3. [Der Signalweg](#3-der-signalweg)
+4. [Die Sektionen](#4-die-sektionen)
+5. [Patchbay](#5-patchbay)
+6. [Settings](#6-settings)
+7. [MIDI](#7-midi)
+8. [Presets](#8-presets)
+9. [Tipps und Fehlersuche](#9-tipps-und-fehlersuche)
 
 ---
 
-## Installation
+## 1. Installation
 
-Die fertigen Plugins liegen bei den [Releases](https://github.com/sscheppert-blip/NegativeAtomium/releases) für Windows, macOS und Linux.
-Kopiere die Dateien in den Plugin-Ordner deines Systems und starte die DAW neu:
+NegativeAtomium gibt es als **AU** (nur macOS), **VST3** und **CLAP** für macOS, Windows und Linux,
+dazu eine **Standalone**-App, die ohne DAW läuft. Fertige Pakete liegen bei den
+[Releases](https://github.com/sscheppert-blip/NegativeAtomium/releases).
 
-| System | VST3 | CLAP | AU |
-|---|---|---|---|
-| Windows | `C:\Program Files\Common Files\VST3` | `C:\Program Files\Common Files\CLAP` | – |
-| macOS | `~/Library/Audio/Plug-Ins/VST3` | `~/Library/Audio/Plug-Ins/CLAP` | `~/Library/Audio/Plug-Ins/Components` |
-| Linux | `~/.vst3` | `~/.clap` | – |
+| System | Ordner |
+|---|---|
+| macOS AU | `~/Library/Audio/Plug-Ins/Components/` |
+| macOS VST3 | `~/Library/Audio/Plug-Ins/VST3/` |
+| macOS CLAP | `~/Library/Audio/Plug-Ins/CLAP/` |
+| Windows VST3 | `C:\Program Files\Common Files\VST3\` |
+| Windows CLAP | `C:\Program Files\Common Files\CLAP\` |
+| Linux VST3 / CLAP | `~/.vst3/` / `~/.clap/` |
 
-Beim Aktualisieren den alten Plugin-Ordner (z. B. `NegativeAtomium.vst3`) vorher löschen.
+Danach die DAW nach neuen Plugins suchen lassen. NegativeAtomium erscheint als Instrument des
+Herstellers **NegativeAtomium**. Beim Aktualisieren das alte Plugin (z. B. den Ordner
+`NegativeAtomium.vst3`) vorher löschen.
 
-Auf dem Mac sind die Plugins nicht notarisiert. Blockiert macOS sie nach dem Download, hilft im
-Terminal:
+**Standalone-App:** entpacken und von überall starten – auf dem Mac `NegativeAtomium.app` (z. B. in
+die Programme), unter Windows `NegativeAtomium.exe`, unter Linux das Programm `NegativeAtomium`.
+Audio- und MIDI-Geräte wählst du unter **Options → Audio/MIDI Settings**.
+
+### Plugins auf macOS freigeben
+
+Jede heruntergeladene Datei bekommt von macOS eine versteckte „Quarantäne“-Markierung. Bei Plugins,
+die nicht von Apple notarisiert sind – wie NegativeAtomium und viele kostenlose oder Open-Source-Plugins
+– kann das bedeuten:
+
+- eine Meldung, das Plugin „kann nicht geöffnet werden“ oder „ist beschädigt“,
+- oder die DAW überspringt es beim Scannen einfach.
+
+**Der allgemeine Weg – klappt für jedes Plugin:** die Markierung einmal im **Terminal** entfernen
+(Programme → Dienstprogramme → Terminal), danach die DAW neu starten:
 
 ```bash
-xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/NegativeAtomium.vst3
+xattr -dr com.apple.quarantine "/Pfad/zum/Plugin"
 ```
 
-(entsprechend für die `.component`- und `.clap`-Datei).
+Tipp: `xattr -dr com.apple.quarantine ` (mit dem Leerzeichen am Ende) tippen, die Plugin-Datei aus dem
+Finder ins Terminal-Fenster ziehen – der Pfad wird eingefügt – und Return drücken. `-d` löscht die
+Markierung, `-r` schließt alles im Plugin-Paket ein. `xattr -l "/Pfad/zum/Plugin"` zeigt, ob noch eine
+Markierung da ist.
+
+**Für NegativeAtomium – alle Formate auf einmal:**
+
+```bash
+xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/NegativeAtomium.component ~/Library/Audio/Plug-Ins/VST3/NegativeAtomium.vst3 ~/Library/Audio/Plug-Ins/CLAP/NegativeAtomium.clap /Applications/NegativeAtomium.app
+```
+
+Hast du nur einen Teil der Formate installiert, meldet der Befehl die fehlenden – das ist in Ordnung,
+die anderen sind trotzdem freigegeben.
+
+Mach das nur bei Plugins aus Quellen, denen du vertraust: Die Markierung ist die Frage von macOS
+„Bist du sicher?“.
 
 ---
 
-## Bedienung
+## 2. Bedienung
 
 - **Knobs:** mit der Maus nach oben/unten oder links/rechts ziehen. Beim Ziehen erscheint der
   Wert. **Doppelklick** setzt den Knob auf seinen Grundwert zurück.
@@ -67,7 +101,7 @@ Linie zur Modulation.
 
 ---
 
-## Der Signalweg
+## 3. Der Signalweg
 
 Ohne Kabel läuft das Signal so:
 
@@ -86,7 +120,7 @@ NOISE ─────────────┘    ▲  ▲                ▲ 
 
 ---
 
-## Die Sektionen
+## 4. Die Sektionen
 
 ### OSC 1 / OSC 2
 
@@ -196,7 +230,7 @@ Analog nachgebildetes Eimerketten-Delay (BBD): Je länger die Zeit, desto dunkle
 
 ---
 
-## Patchbay
+## 5. Patchbay
 
 Links die 32 **Eingänge (IN)**, rechts die 24 **Ausgänge (OUT)**.
 
@@ -271,7 +305,7 @@ VCA BIAS öffnen oder Noten spielen.
 
 ---
 
-## Settings
+## 6. Settings
 
 Die Taste **SETTINGS** in der Kopfzeile öffnet Optionen, die man am Original nur über
 Tastenkombinationen erreicht. **CLOSE** schließt sie wieder.
@@ -297,7 +331,7 @@ Tastenkombinationen erreicht. **CLOSE** schließt sie wieder.
 
 ---
 
-## MIDI
+## 7. MIDI
 
 - Das Plugin hört auf alle MIDI-Kanäle.
 - Noten werden in den Bereich **C1–C7** gelegt (tiefere/höhere Noten werden in den Bereich
@@ -309,7 +343,7 @@ Tastenkombinationen erreicht. **CLOSE** schließt sie wieder.
 
 ---
 
-## Presets
+## 8. Presets
 
 **SAVE** speichert den aktuellen Sound inklusive aller Patchkabel unter einem Namen, **PRESET**
 lädt ihn wieder.
@@ -326,7 +360,7 @@ Unabhängig davon speichert dein DAW-Projekt immer den aktuellen Sound mit.
 
 ---
 
-## Tipps und Fehlersuche
+## 9. Tipps und Fehlersuche
 
 - **Der Klang wabert, obwohl MOD DEPTH auf null steht?** Dann ist meist **ATTENUATOR 2**
   aufgedreht: Der LFO moduliert darüber fest verdrahtet die Pulsbreite beider Oszillatoren
