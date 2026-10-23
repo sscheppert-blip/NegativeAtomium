@@ -53,9 +53,22 @@ for file in "${scanned_files[@]}"; do
     esac
 done
 
-pattern="BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN CERTIFICATE-----|(?i)(api[_-]?key|client[_-]?secret|password|passwd|secret|access[_-]?token|auth[_-]?token)\\s*[:=]\\s*[\"']?[^[:space:]\"']{8,}|/Users/[A-Za-z0-9._-]+/|[A-Za-z]:\\\\Users\\\\[A-Za-z0-9._-]+"
+pattern="BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN CERTIFICATE-----|(?i:api[_-]?key|client[_-]?secret|password|passwd|secret|access[_-]?token|auth[_-]?token)\\s*[:=]\\s*[\"']?[^[:space:]\"']{8,}|/Users/[A-Za-z0-9._-]+/|[A-Za-z]:\\\\Users\\\\[A-Za-z0-9._-]+"
 
-if rg --no-heading --line-number --hidden --text --no-messages -e "$pattern" -- "${scanned_files[@]}"; then
+# Feed the files in batches (xargs): a single rg call fails with "argument list too long" in big
+# repositories, and a failed call must never count as "nothing found".
+status=0
+matches=$(printf '%s\0' "${scanned_files[@]}" \
+    | xargs -0 rg --no-heading --line-number --hidden --text --no-messages -e "$pattern" --) || status=$?
+
+# xargs: 0 = every batch matched, 123 = some batch exited 1 (no match), 124+ = rg could not run.
+if [[ $status -ge 124 ]]; then
+    echo "check-sensitive-data: scan could not run (status $status)" >&2
+    exit 2
+fi
+
+if [[ -n "$matches" ]]; then
+    printf '%s\n' "$matches"
     echo "Sensitive-data scan failed. Remove the value and rotate any exposed credential." >&2
     exit 1
 fi
