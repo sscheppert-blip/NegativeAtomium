@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+  <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#3a3d40"/><stop offset="1" stop-color="#1c1e20"/>
+  </linearGradient>
+  <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.10"/><stop offset="0.5" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="nucleus" cx="0.4" cy="0.35" r="0.65">
+    <stop offset="0" stop-color="#ffe2a8"/><stop offset="0.45" stop-color="#f5a623"/><stop offset="1" stop-color="#a35a00"/>
+  </radialGradient>
+  <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#ffb13b" stop-opacity="0.55"/><stop offset="1" stop-color="#ffb13b" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="screw" cx="0.4" cy="0.35" r="0.7">
+    <stop offset="0" stop-color="#8b8f93"/><stop offset="1" stop-color="#2b2d2f"/>
+  </radialGradient>
+  <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.6"/>
+  </filter>
+</defs>
+<rect x="20" y="20" width="984" height="984" rx="200" fill="url(#tile)" stroke="#0b0c0d" stroke-width="16"/>
+<rect x="28" y="28" width="968" height="968" rx="192" fill="url(#sheen)"/>
+<circle cx="130" cy="130" r="26" fill="url(#screw)" stroke="#121314" stroke-width="5"/>
+<line x1="115" y1="138" x2="145" y2="122" stroke="#151617" stroke-width="7" stroke-linecap="round"/>
+<circle cx="894" cy="130" r="26" fill="url(#screw)" stroke="#121314" stroke-width="5"/>
+<line x1="879" y1="138" x2="909" y2="122" stroke="#151617" stroke-width="7" stroke-linecap="round"/>
+<circle cx="130" cy="894" r="26" fill="url(#screw)" stroke="#121314" stroke-width="5"/>
+<line x1="115" y1="902" x2="145" y2="886" stroke="#151617" stroke-width="7" stroke-linecap="round"/>
+<circle cx="894" cy="894" r="26" fill="url(#screw)" stroke="#121314" stroke-width="5"/>
+<line x1="879" y1="902" x2="909" y2="886" stroke="#151617" stroke-width="7" stroke-linecap="round"/>
+<g filter="url(#soft)">
+<ellipse cx="512" cy="512" rx="340" ry="122" fill="none" stroke="#eceae6" stroke-width="30" transform="rotate(0 512 512)"/>
+<ellipse cx="512" cy="512" rx="340" ry="122" fill="none" stroke="#eceae6" stroke-width="30" transform="rotate(60 512 512)"/>
+<ellipse cx="512" cy="512" rx="340" ry="122" fill="none" stroke="#eceae6" stroke-width="30" transform="rotate(120 512 512)"/>
+</g>
+<circle cx="192.5" cy="470.3" r="34" fill="url(#nucleus)" stroke="#1c1e20" stroke-width="6"/>
+<circle cx="635.6" cy="809.6" r="34" fill="url(#nucleus)" stroke="#1c1e20" stroke-width="6"/>
+<circle cx="553.1" cy="670.0" r="34" fill="url(#nucleus)" stroke="#1c1e20" stroke-width="6"/>
+<circle cx="512" cy="512" r="190" fill="url(#halo)"/>
+<circle cx="512" cy="512" r="84" fill="url(#nucleus)" stroke="#1c1e20" stroke-width="8"/>
+<rect x="472" y="500" width="80" height="24" rx="10" fill="#4a2600"/>
+</svg>

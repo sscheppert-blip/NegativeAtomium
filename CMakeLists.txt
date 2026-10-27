@@ -35,6 +35,7 @@ juce_add_plugin(NegativeAtomium
     BUNDLE_ID                "com.negativeatomium.synth"
     PLUGIN_MANUFACTURER_CODE Ngat
     PLUGIN_CODE              NgA1
+    ICON_BIG                 "${CMAKE_CURRENT_SOURCE_DIR}/design/icon.png"
     FORMATS                  VST3 AU Standalone
     IS_SYNTH                 TRUE
     NEEDS_MIDI_INPUT         TRUE
