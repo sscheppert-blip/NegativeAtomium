@@ -19,7 +19,7 @@ JUCE as AU, VST3, CLAP and Standalone for macOS, Windows and Linux.
 - Presets with all cables, saved as plain files in your user folder; the window scales from 60 to 250 %
 - Oversampled 2×
 
-**Manual:** [English](docs/Manual.md) · [Deutsch](docs/Handbuch.md)
+**Manual:** [English](docs/Manual.md) · [Deutsch](docs/Handbuch.md) · **Schnellstart (German quick start):** [docs/Schnellstart.md](docs/Schnellstart.md)
 
 ![NegativeAtomium front panel](docs/images/panel.png)
 
